@@ -2,11 +2,26 @@
 
 ---
 
-## Linux / Debian 11 Compatibility Fork
+## Linux Compatibility Fork (glibc < 2.38)
 
-This fork fixes a `GLIBC not found` error on **Debian 11 (Bullseye)** and other systems with older glibc (< 2.36). The upstream `isar_community_flutter_libs` ships binaries built for newer glibc (Debian 13+), which crash on Debian 11 at runtime.
+The upstream `isar_community_flutter_libs` (3.3.x) ships Linux binaries that require **glibc 2.38+**. Many common Linux distros ship with an older glibc and will hit this error at runtime:
 
-Only `isar_community_flutter_libs` is patched here — all other packages remain from upstream. To use this fix, add a `dependency_overrides` in your `pubspec.yaml`:
+```
+version `GLIBC_2.3x' not found
+```
+
+| Distro | glibc | Upstream |
+|---|---|---|
+| Debian 11 (Bullseye) | 2.31 | ❌ Fails |
+| Debian 12 (Bookworm) | 2.36 | ❌ Fails |
+| Ubuntu 20.04 LTS | 2.31 | ❌ Fails |
+| Ubuntu 22.04 LTS | 2.35 | ❌ Fails |
+| Ubuntu 24.04 LTS | 2.39 | ✅ Works |
+| Debian 13 (Trixie) | 2.40 | ✅ Works |
+
+This fork rebuilds the Linux native library targeting **glibc 2.28**, covering all distros above. Only `isar_community_flutter_libs` is patched — all other packages remain from upstream.
+
+To use this fix, add a `dependency_overrides` in your `pubspec.yaml`:
 
 ```yaml
 dependency_overrides:
