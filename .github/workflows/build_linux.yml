@@ -1,0 +1,54 @@
+name: Build libisar Linux x64 (GLIBC 2.36)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:  # manual trigger
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:12  # GLIBC 2.36 — matches Bookworm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y \
+            curl \
+            build-essential \
+            pkg-config \
+            libssl-dev \
+            git
+
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Build libisar
+        run: |
+          cargo build --release -p isar_core_ffi
+
+      - name: Rename output
+        run: |
+          cp target/release/libisar.so libisar_linux_x64_glibc236.so
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libisar-linux-x64-debian12
+          path: libisar_linux_x64_glibc236.so
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: libisar_linux_x64_glibc236.so
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
