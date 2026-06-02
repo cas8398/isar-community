@@ -13,7 +13,7 @@ jobs:
       image: debian:12
     defaults:
       run:
-        shell: bash  # force bash for all steps
+        shell: bash
 
     steps:
       - name: Checkout
@@ -29,7 +29,10 @@ jobs:
             libssl-dev \
             git \
             python3 \
-            bash
+            bash \
+            clang \
+            libclang-dev \
+            llvm-dev
 
       - name: Install Rust
         run: |
