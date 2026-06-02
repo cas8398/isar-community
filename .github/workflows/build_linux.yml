@@ -1,4 +1,4 @@
-name: Build libisar Linux x64 (GLIBC 2.36)
+name: Build libisar Linux x64
 
 on:
   push:
@@ -7,10 +7,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-debian11:
+    name: Debian 11 (GLIBC 2.31)
     runs-on: ubuntu-latest
     container:
-      image: debian:12
+      image: debian:11
     defaults:
       run:
         shell: bash
@@ -43,27 +44,26 @@ jobs:
           . "$HOME/.cargo/env"
           cargo build --release --manifest-path packages/isar_core_ffi/Cargo.toml
 
-      - name: Find and verify output
+      - name: Verify and copy output
         run: |
-          find target/release -name "*.so" -ls
-          cp target/release/libisar.so libisar_linux_x64_glibc236.so
+          cp target/release/libisar.so libisar_linux_x64_glibc231.so
+          ls -lh libisar_linux_x64_glibc231.so
           echo "✓ Build complete"
-          ldd libisar_linux_x64_glibc236.so | grep GLIBC | sort -V | tail -1
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: libisar-linux-x64-debian12
-          path: libisar_linux_x64_glibc236.so
+          name: libisar-linux-x64-debian11
+          path: libisar_linux_x64_glibc231.so
 
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          files: libisar_linux_x64_glibc236.so
-          name: libisar Linux x64 GLIBC 2.36
+          files: libisar_linux_x64_glibc231.so
+          name: libisar Linux x64 GLIBC 2.31
           body: |
-            libisar.so built on Debian 12 (Bookworm) — GLIBC 2.36
-            Compatible with: Debian 12+, Ubuntu 22.04+, and any Linux with GLIBC 2.36+
+            libisar.so built on Debian 11 (Bullseye) — GLIBC 2.31
+            Compatible with: Debian 11+, Ubuntu 20.04+, Linux Mint 20+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
