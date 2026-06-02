@@ -4,13 +4,13 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:  # manual trigger
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: debian:12  # GLIBC 2.36 — matches Bookworm
+      image: debian:12
 
     steps:
       - name: Checkout
@@ -24,7 +24,8 @@ jobs:
             build-essential \
             pkg-config \
             libssl-dev \
-            git
+            git \
+            python3
 
       - name: Install Rust
         run: |
@@ -33,11 +34,15 @@ jobs:
 
       - name: Build libisar
         run: |
-          cargo build --release -p isar_core_ffi
+          source $HOME/.cargo/env
+          cargo build --release --manifest-path packages/isar_core_ffi/Cargo.toml
 
-      - name: Rename output
+      - name: Find and verify output
         run: |
+          find target/release -name "*.so" -ls
           cp target/release/libisar.so libisar_linux_x64_glibc236.so
+          echo "✓ Build complete"
+          ldd libisar_linux_x64_glibc236.so | grep GLIBC | sort -V | tail -1
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -50,5 +55,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: libisar_linux_x64_glibc236.so
+          name: libisar Linux x64 GLIBC 2.36
+          body: |
+            libisar.so built on Debian 12 (Bookworm) — GLIBC 2.36
+            Compatible with: Debian 12+, Ubuntu 22.04+, and any Linux with GLIBC 2.36+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
