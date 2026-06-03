@@ -17,12 +17,8 @@
 build/
 
 # Rust related
-target/
-*.a 
-*.dylib
-*.dll
-*.zip
-*.xcframework/
+target/  
+*.zip 
 isar-dart.h
 
 # Android related
